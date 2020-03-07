@@ -19,6 +19,15 @@ const INITIAL_STATE = {
   photo: ''
 };
 
+async function loadModel() {
+  console.log('Models have started Loading');
+  const model_path = window.location.origin + '/models';
+  await faceapi.nets.faceRecognitionNet.loadFromUri(model_path);
+  await faceapi.nets.faceLandmark68Net.loadFromUri(model_path);
+  await faceapi.nets.ssdMobilenetv1.loadFromUri(model_path);
+  console.log('Models have ended loading');
+}
+
 export class Home extends Component {
   state: any = {};
   constructor(props: any) {
@@ -34,18 +43,18 @@ export class Home extends Component {
     });
     var imageUpload = image.webPath;
     // Can be set to the src of an image now
-    // await faceapi.nets.faceRecognitionNet.loadFromUri('./../models');
-    // await faceapi.nets.faceLandmark68Net.loadFromUri('./../models');
-    // await faceapi.nets.ssdMobilenetv1.loadFromUri('./../models');
     this.setState({
       photo: imageUpload
     });
-    console.log('image uploaded');
-    // this.start(this.state.photo);
+    loadModel();
+    const img = `<img src = "${this.state.photo}"/>`;
+    this.start(img);
   }
   async start(image) {
+    console.log('Start started');
     const container = document.getElementById('test');
     const labeledFaceDescriptors = await this.loadLabeledImages();
+    console.log(labeledFaceDescriptors);
     const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6);
     let canvas;
     image = await faceapi.bufferToImage(image);
@@ -87,7 +96,8 @@ export class Home extends Component {
           const img = await faceapi.fetchImage(
             `https://raw.githubusercontent.com/WebDevSimplified/Face-Recognition-JavaScript/master/labeled_images/${label}/${i}.jpg`
           );
-          await faceapi.nets.ssdMobilenetv1.loadFromUri('./../models');
+          const model_path = window.location.origin + '/models';
+          await faceapi.nets.ssdMobilenetv1.loadFromUri(model_path);
 
           const detections = await faceapi
             .detectSingleFace(img, new faceapi.SsdMobilenetv1Options())
@@ -115,7 +125,7 @@ export class Home extends Component {
             style={{ border: '1px solid black', minHeight: '100px' }}
             src={photo}
           ></IonImg>
-          <div className='test'></div>
+          <div id='test'></div>
           <IonFab
             color='primary'
             vertical='bottom'
